@@ -193,15 +193,6 @@
             resize: vertical;
             width: 100%; 
             max-width: none; 
-
-        }
-
-        .processed-notes {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            border-left: 4px solid #00b894;
         }
 
         .email-section {
@@ -327,7 +318,6 @@
                     <div class="notes-tabs">
                         <button type="button" class="tab-btn active" onclick="switchTab('manual')">Manual Notes</button>
                         <button type="button" class="tab-btn" onclick="switchTab('krisp')">Krisp Import</button>
-                        <button type="button" class="tab-btn" onclick="switchTab('processed')">Organized Notes</button>
                     </div>
 
                     <div id="manualTab" class="tab-content active">
@@ -335,14 +325,7 @@
                     </div>
 
                     <div id="krispTab" class="tab-content">
-                        <textarea id="krispPaste" placeholder="Paste your Krisp meeting notes here and click 'Process Notes' to organize them..."></textarea>
-                        <button type="button" class="btn-primary" onclick="processKrispNotes()" style="margin-top: 10px;">🔄 Process Notes</button>
-                    </div>
-
-                    <div id="processedTab" class="tab-content">
-                        <div class="processed-notes" id="processedNotes">
-                            <p style="color: #636e72; font-style: italic;">Processed notes will appear here after importing from Krisp...</p>
-                        </div>
+                        <textarea id="krispPaste" placeholder="Paste your Krisp meeting notes here..."></textarea>
                     </div>
                 </div>
 
@@ -363,9 +346,6 @@
                     </button>
                     <button type="button" class="btn-secondary" onclick="sendEmail()">
                         📤 Send Email
-                    </button>
-                    <button type="button" class="btn-secondary" onclick="exportNotes()">
-                        📄 Export as PDF
                     </button>
                     <button type="button" class="btn-add" onclick="testConnection()">
                         🧪 Test Connection
@@ -456,101 +436,6 @@
             // Add active class to selected tab and content
             event.target.classList.add('active');
             document.getElementById(tabName + 'Tab').classList.add('active');
-        }
-
-        function processKrispNotes() {
-            const krispText = document.getElementById('krispPaste').value.trim();
-            if (!krispText) {
-                showError('Please paste Krisp notes first');
-                return;
-            }
-
-            // Process the Krisp notes similar to your example format
-            const processedHTML = `
-                <h4 style="color: #00b894; margin-bottom: 10px;">📋 Processed Meeting Notes</h4>
-                <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <h5 style="color: #2d3436; margin-bottom: 10px;">Key Points</h5>
-                    <div style="color: #636e72;">${formatKeyPoints(krispText)}</div>
-                </div>
-                <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <h5 style="color: #2d3436; margin-bottom: 10px;">Action Items</h5>
-                    <div style="color: #636e72;">${formatActionItems(krispText)}</div>
-                </div>
-                <div style="background: white; padding: 15px; border-radius: 8px;">
-                    <h5 style="color: #2d3436; margin-bottom: 10px;">Summary</h5>
-                    <div style="color: #636e72;">${formatSummary(krispText)}</div>
-                </div>
-            `;
-
-            document.getElementById('processedNotes').innerHTML = processedHTML;
-            switchTab('processed');
-            document.querySelector('[onclick="switchTab(\'processed\')"]').classList.add('active');
-            showSuccess('Notes processed successfully!');
-        }
-
-        function formatKeyPoints(text) {
-            // Simple processing - look for bullet points or key indicators
-            const lines = text.split('\n');
-            let keyPoints = [];
-            let inKeyPoints = false;
-
-            for (let line of lines) {
-                if (line.toLowerCase().includes('key points') || line.toLowerCase().includes('discussion')) {
-                    inKeyPoints = true;
-                    continue;
-                }
-                if (line.toLowerCase().includes('action items') || line.toLowerCase().includes('summary')) {
-                    inKeyPoints = false;
-                }
-                if (inKeyPoints && (line.startsWith('*') || line.startsWith('-') || line.trim().length > 20)) {
-                    keyPoints.push(line.replace(/^\*\s*/, '').replace(/^-\s*/, ''));
-                }
-            }
-
-            return keyPoints.length > 0 ? keyPoints.map(point => `• ${point}`).join('<br>') : 
-                   'Key discussion points extracted from the meeting content.';
-        }
-
-        function formatActionItems(text) {
-            const lines = text.split('\n');
-            let actionItems = [];
-            let inActionItems = false;
-
-            for (let line of lines) {
-                if (line.toLowerCase().includes('action items')) {
-                    inActionItems = true;
-                    continue;
-                }
-                if (line.toLowerCase().includes('summary') && inActionItems) {
-                    inActionItems = false;
-                }
-                if (inActionItems && (line.startsWith('*') || line.startsWith('-') || line.includes('to '))) {
-                    actionItems.push(line.replace(/^\*\s*/, '').replace(/^-\s*/, ''));
-                }
-            }
-
-            return actionItems.length > 0 ? actionItems.map(item => `• ${item}`).join('<br>') : 
-                   'Action items will be extracted from the meeting content.';
-        }
-
-        function formatSummary(text) {
-            // Extract summary section or create a brief summary
-            const lines = text.split('\n');
-            let summary = [];
-            let inSummary = false;
-
-            for (let line of lines) {
-                if (line.toLowerCase().includes('summary')) {
-                    inSummary = true;
-                    continue;
-                }
-                if (inSummary && line.trim().length > 10) {
-                    summary.push(line);
-                }
-            }
-
-            return summary.length > 0 ? summary.join('<br>') : 
-                   'Meeting summary with key outcomes and decisions made during the discussion.';
         }
 
         // Google Apps Script Web App URL - Replace with your deployed script URL
@@ -689,20 +574,6 @@
             });
         }
 
-        function exportNotes() {
-            const title = document.getElementById('meetingTitle').value;
-            if (!title) {
-                showError('Please enter a meeting title');
-                return;
-            }
-
-            // Simulate PDF export
-            showSuccess('Meeting notes exported as PDF');
-            
-            // In a real implementation, you could use libraries like jsPDF
-            console.log('Exporting as PDF...');
-        }
-
         function testConnection() {
             if (SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                 showError('Please update SCRIPT_URL with your actual Google Apps Script URL');
@@ -767,9 +638,6 @@
                         <span style="padding: 12px; color: #00b894; font-weight: 600;">Default</span>
                     </div>
                 `;
-                document.getElementById('processedNotes').innerHTML = `
-                    <p style="color: #636e72; font-style: italic;">Processed notes will appear here after importing from Krisp...</p>
-                `;
                 attendeeCount = 0;
                 emailCount = 0;
                 showSuccess('Form cleared successfully');
@@ -789,7 +657,6 @@
         function getCombinedNotes() {
             const manualNotes = document.getElementById('manualNotes').value;
             const krispNotes = document.getElementById('krispPaste').value;
-            const processedNotesDiv = document.getElementById('processedNotes');
             
             let combinedNotes = '';
             
@@ -801,12 +668,6 @@
             // Add Krisp notes if they exist
             if (krispNotes.trim()) {
                 combinedNotes += 'KRISP TRANSCRIPT:\n' + krispNotes + '\n\n';
-            }
-            
-            // Add processed notes if they exist and are not default text
-            const processedText = processedNotesDiv.textContent || processedNotesDiv.innerText;
-            if (processedText && !processedText.includes('Processed notes will appear')) {
-                combinedNotes += 'ORGANIZED NOTES:\n' + processedText + '\n\n';
             }
             
             return combinedNotes.trim();
